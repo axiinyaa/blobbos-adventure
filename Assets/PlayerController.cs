@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderKeywordFilter;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -12,16 +14,22 @@ public class PlayerController : MonoBehaviour
 
     public float speed = 5f; // Movement speed
     public float gravity = 10f;
+    float gravityModifier = 1f;
 
-    void Start()
-    {
+    public float jumpTime = 0f;
+    float maxJumpTime = 0.2f;
+    public float jumpStrength = 5f;
 
-    }
+    public bool DEBUGIsGrounded = false;
+
+    public Vector3 velocity;
 
     bool wasRolling = false;
 
     void Update()
     {
+        DEBUGIsGrounded = controller.isGrounded;
+
         bool ballin = Input.GetKey(KeyCode.LeftShift);
 
         Vector2 movementInput = new Vector2(
@@ -35,25 +43,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        Movement(movementInput);
-    }
-
-    public void Rolling(Vector2 movementInput)
-    {
-        animator.SetBool("Rolling", true);
-        rb.isKinematic = false;
-
-        if (!wasRolling)
-        {
-            rb.velocity = controller.velocity;
-            wasRolling = true;
-        }
-
-        controller.enabled = false;
-    }
-
-    public void Movement(Vector2 movementInput)
-    {
         transform.rotation = Quaternion.Euler(Vector3.zero);
         animator.SetBool("Rolling", false);
         rb.isKinematic = true;
@@ -69,10 +58,8 @@ public class PlayerController : MonoBehaviour
         // Calculate the desired movement direction
         Vector3 desiredMoveDirection = (forward * movementInput.y + right * movementInput.x).normalized;
 
-        Vector3 finalMoveDirection = new Vector3(desiredMoveDirection.x, -1 * gravity * Time.deltaTime, desiredMoveDirection.z);
-
-        // Move the player
-        controller.Move(finalMoveDirection * speed * Time.deltaTime);
+        velocity.x = desiredMoveDirection.x * speed * Time.deltaTime;
+        velocity.z = desiredMoveDirection.z * speed * Time.deltaTime;
 
         // Optional: Rotate the player to face the movement direction
         if (desiredMoveDirection != Vector3.zero)
@@ -86,5 +73,31 @@ public class PlayerController : MonoBehaviour
         {
             animator.SetBool("Moving", false);
         }
+
+        if (Input.GetKeyDown(KeyCode.Space) && controller.isGrounded)
+        {
+            velocity.y = jumpStrength;
+        }
+
+        if (!controller.isGrounded)
+        {
+            velocity.y += -gravity * Time.deltaTime;
+        }
+
+        controller.Move(velocity);
+    }
+
+    public void Rolling(Vector2 movementInput)
+    {
+        animator.SetBool("Rolling", true);
+        rb.isKinematic = false;
+
+        if (!wasRolling)
+        {
+            rb.velocity = controller.velocity;
+            wasRolling = true;
+        }
+
+        controller.enabled = false;
     }
 }
