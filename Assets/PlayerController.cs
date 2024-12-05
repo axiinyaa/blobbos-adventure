@@ -11,10 +11,12 @@ public class PlayerController : MonoBehaviour
     public CharacterController controller;
     public Rigidbody rb;
     public GameObject model;
+    public ParticleSystem particles;
 
     public float speed = 5f; // Movement speed
     public float gravity = 10f;
     float gravityModifier = 1f;
+    public bool disableControl;
 
     public float jumpTime = 0f;
     float maxJumpTime = 0.2f;
@@ -28,6 +30,11 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (disableControl)
+        {
+            return;
+        }
+
         DEBUGIsGrounded = controller.isGrounded;
 
         bool ballin = Input.GetKey(KeyCode.LeftShift);
@@ -61,17 +68,26 @@ public class PlayerController : MonoBehaviour
         velocity.x = desiredMoveDirection.x * speed * Time.deltaTime;
         velocity.z = desiredMoveDirection.z * speed * Time.deltaTime;
 
+        var emission = particles.emission;
+
         // Optional: Rotate the player to face the movement direction
         if (desiredMoveDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(desiredMoveDirection);
+
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, targetRotation, Time.deltaTime * 10f);
 
             animator.SetBool("Moving", true);
+            
+            if (controller.isGrounded)
+            {
+                emission.rateOverTime = 5;
+            }
         }
         else
         {
             animator.SetBool("Moving", false);
+            emission.rateOverTime = 0;
         }
 
         if (Input.GetKeyDown(KeyCode.Space) && controller.isGrounded)
@@ -92,9 +108,13 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("Rolling", true);
         rb.isKinematic = false;
 
+        var emission = particles.emission;
+        emission.rateOverTime = 0;
+
         if (!wasRolling)
         {
             rb.velocity = controller.velocity;
+            rb.velocity += model.transform.forward * 10;
             wasRolling = true;
         }
 
