@@ -75,6 +75,8 @@ public class PlayerController : MonoBehaviour
         {
             Quaternion targetRotation = Quaternion.LookRotation(desiredMoveDirection);
 
+            targetRotation.x = 0;
+
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, targetRotation, Time.deltaTime * 10f);
 
             animator.SetBool("Moving", true);

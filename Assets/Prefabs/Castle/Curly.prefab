@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5436665825312169036}
   - component: {fileID: 5008347989716927473}
   - component: {fileID: 5361068147093679279}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Curly
   m_TagString: Untagged
   m_Icon: {fileID: 0}
